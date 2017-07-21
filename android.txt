@@ -1,0 +1,3 @@
+title=Song Recorder
+author=yingshaoxo
+orientation=portrait

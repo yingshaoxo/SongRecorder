@@ -1,4 +1,4 @@
-# Kivy-Diary
+# Song Recorder
 Song recoding application made it with Kivy. 
 
 Only support Python2 and Android platfrom.

@@ -1,5 +1,7 @@
 # Kivy-Diary
-Song recoding application made it with Kivy. Only supports Python2 and Android platfrom.
+Song recoding application made it with Kivy. 
+
+Only supports Python2 and Android platfrom.
 
 For testing, use Qpython2 or Kivy Launcher:
 

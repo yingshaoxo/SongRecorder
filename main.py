@@ -323,6 +323,8 @@ class ScreenManager(ScreenManager):
         os.remove(aac_path)
         
     def record_button(self):
+        if self.is_playbacking:
+            return
         if self.is_recording:
             self.end_recording()
         else:

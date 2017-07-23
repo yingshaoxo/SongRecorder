@@ -3,7 +3,7 @@ Song recoding application made it with Kivy.
 
 Only support Python2 and Android platfrom.
 
-For testing, use QPython or Kivy Launcher:
+For testing, use QPython or Kivy Launcher.
 
 ![start](https://github.com/yingshaoxo/SongRecorder/raw/master/screenshots/start.png "start")
 

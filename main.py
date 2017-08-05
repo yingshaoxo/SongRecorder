@@ -304,7 +304,6 @@ class ScreenManager(ScreenManager):
         super(ScreenManager, self).__init__(**kwargs)
     
     def begin_recording(self):
-        self.delete_recording_file()
         init_recorder()
         restart_player(self.mp3_path)
         recorder.start()
@@ -318,13 +317,20 @@ class ScreenManager(ScreenManager):
         self.is_recording = False
         self.get_screen('recording').ids.record_button.text = '[size=60]Record[/size]'
 
-    def delete_recording_file(self):
+    def begin_playing(self):
+        restart_player(aac_path)
+        self.is_playbacking = True
+        self.get_screen('recording').ids.playback_button.text = '[size=60]Tap to stop[/size]'
+
+    def stop_playing(self):
         reset_player()
-        os.remove(aac_path)
+        self.is_playbacking = False
+        self.get_screen('recording').ids.playback_button.text = '[size=60]Playback[/size]'
         
     def record_button(self):
         if self.is_playbacking:
-            return
+            self.stop_playing()
+
         if self.is_recording:
             self.end_recording()
         else:
@@ -332,17 +338,12 @@ class ScreenManager(ScreenManager):
 
     def playback_button(self):
         if self.is_recording:
-            self.record_button()
+            self.end_recording()
 
         if self.is_playbacking:
-            reset_player()
-            self.is_playbacking = False
-            self.get_screen('recording').ids.playback_button.text = '[size=60]Playback[/size]'
-
+            self.stop_playing()
         else:
-            restart_player(aac_path)
-            self.is_playbacking = True
-            self.get_screen('recording').ids.playback_button.text = '[size=60]Tap to stop[/size]'
+            self.begin_playing()
 
 
 class SongRecorderApp(App):

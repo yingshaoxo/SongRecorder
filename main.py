@@ -5,9 +5,16 @@ try:
     import sys 
     reload(sys) 
     sys.setdefaultencoding("utf-8")
+    
+    # Fix QPython logging problem
+    with open('.run.log', 'w') as f:
+        f.write('')
+    sys.stdout = open('.run.log', 'a') 
+    sys.stderr = open('.run.log', 'a')
 except:
     pass
-	
+
+
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -17,6 +24,8 @@ from kivy.core.clipboard import Clipboard
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
+
+from kivy.clock import Clock
 
 import os
 import json
@@ -106,6 +115,15 @@ player = MediaPlayer()
 
 aac_path = (storage_dir + '/kivy_recording.aac')
 
+def init_recorder():
+    recorder.setAudioSource(AudioSource.MIC)
+    recorder.setOutputFormat(OutputFormat.MPEG_4)
+    recorder.setAudioEncoder(AudioEncoder.AAC)
+    recorder.setAudioEncodingBitRate(16 * 44100)
+    recorder.setAudioSamplingRate(44100)
+    recorder.setOutputFile(aac_path)
+    recorder.prepare()
+
 def reset_player():
     if (player.isPlaying()):
         player.stop()
@@ -119,15 +137,6 @@ def restart_player(file_path):
         player.start()
     except:
         player.reset()
-
-def init_recorder():
-    recorder.setAudioSource(AudioSource.MIC)
-    recorder.setOutputFormat(OutputFormat.MPEG_4)
-    recorder.setAudioEncoder(AudioEncoder.AAC)
-    recorder.setAudioEncodingBitRate(16 * 44100)
-    recorder.setAudioSamplingRate(44100)
-    recorder.setOutputFile(aac_path)
-    recorder.prepare()
 
 
 Builder.load_string('''
@@ -271,9 +280,8 @@ class SettingScreen(Screen):
     
     def start_button(self):
         app = self.manager.app
-        setting = app.read_setting()
 
-        mp3_path = setting.get('mp3_path')
+        mp3_path = app.read_setting().get('mp3_path')
         if mp3_path == None: # or mp3_path[-4:0] != '.mp3':
             self.select_mp3_button()
             return
@@ -318,11 +326,16 @@ class ScreenManager(ScreenManager):
         self.get_screen('recording').ids.record_button.text = '[size=60]Record[/size]'
 
     def begin_playing(self):
+        def whether_end(dt):
+            if player.isPlaying() == False:
+                self.stop_playing()
         restart_player(aac_path)
+        self.whether_end_event = Clock.schedule_interval(whether_end, 3)
         self.is_playbacking = True
         self.get_screen('recording').ids.playback_button.text = '[size=60]Tap to stop[/size]'
 
     def stop_playing(self):
+        self.whether_end_event.cancel()
         reset_player()
         self.is_playbacking = False
         self.get_screen('recording').ids.playback_button.text = '[size=60]Playback[/size]'
@@ -375,6 +388,19 @@ class SongRecorderApp(App):
     def build(self):
         self.bind(on_start=self.post_build_init)
         return ScreenManager()
+
+    def on_start(self, **kwargs):
+        setting = self.read_setting()
+
+        mp3_path = setting.get('mp3_path')
+        if mp3_path == None: # or mp3_path[-4:0] != '.mp3':
+            return
+
+        lrc = setting.get('lrc')
+        if lrc == None:
+            return
+
+        self.root.get_screen('setting').start_button()
    
     def post_build_init(self, ev):
         from kivy.base import EventLoop
